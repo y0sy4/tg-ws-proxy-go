@@ -57,6 +57,8 @@ func main() {
 	if os.PathSeparator == '\\' {
 		checkAndKillExisting()
 	}
+
+	// Parse flags
 	port := flag.Int("port", 1080, "Listen port")
 	host := flag.String("host", "127.0.0.1", "Listen host")
 	dcIP := flag.String("dc-ip", "", "Target DC IPs (comma-separated, e.g., 2:149.154.167.220,4:149.154.167.220)")
@@ -66,6 +68,11 @@ func main() {
 	bufKB := flag.Int("buf-kb", 256, "Socket buffer size in KB")
 	poolSize := flag.Int("pool-size", 4, "WS pool size per DC")
 	auth := flag.String("auth", "", "SOCKS5 authentication (username:password)")
+	
+	// Advanced features (for experienced users)
+	httpPort := flag.Int("http-port", 0, "Enable HTTP proxy on port (0 = disabled)")
+	upstreamProxy := flag.String("upstream-proxy", "", "Upstream SOCKS5/HTTP proxy (format: socks5://user:pass@host:port or http://user:pass@host:port)")
+	
 	showVersion := flag.Bool("version", false, "Show version")
 
 	flag.Parse()
@@ -116,6 +123,25 @@ func main() {
 		logPath = filepath.Join(appDir, "proxy.log")
 	}
 	logger := setupLogging(logPath, cfg.LogMaxMB, cfg.Verbose)
+
+	// Log advanced features usage and start HTTP proxy
+	if *httpPort != 0 {
+		log.Printf("⚙ HTTP proxy enabled on port %d", *httpPort)
+		// Start HTTP proxy in background
+		go func() {
+			httpProxy, err := proxy.NewHTTPProxy(*httpPort, cfg.Verbose, logger, *upstreamProxy)
+			if err != nil {
+				log.Printf("Failed to create HTTP proxy: %v", err)
+				return
+			}
+			if err := httpProxy.Start(); err != nil {
+				log.Printf("HTTP proxy error: %v", err)
+			}
+		}()
+	}
+	if *upstreamProxy != "" {
+		log.Printf("⚙ Upstream proxy: %s", *upstreamProxy)
+	}
 
 	// Create and start server
 	server, err := proxy.NewServer(cfg, logger)

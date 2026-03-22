@@ -128,31 +128,39 @@ tg://socks?server=127.0.0.1&port=1080
 ```bash
 ./TgWsProxy [опции]
 
-Опции:
+Основные опции (для всех):
   --port int        Порт SOCKS5 (default 1080)
   --host string     Хост SOCKS5 (default "127.0.0.1")
-  --dc-ip string    DC:IP через запятую (default "2:149.154.167.220,4:149.154.167.220")
+  --dc-ip string    DC:IP через запятую
   --auth string     SOCKS5 аутентификация (username:password)
-  --auto-config     Авто-настройка Telegram Desktop при запуске
   -v                Подробное логирование
-  --log-file string Путь к файлу логов
-  --log-max-mb float Макс. размер логов в МБ (default 5)
-  --buf-kb int      Размер буфера в КБ (default 256)
-  --pool-size int   Размер WS пула (default 4)
   --version         Показать версию
+
+Продвинутые опции (для опытных):
+  --http-port int   Включить HTTP прокси на порту (0 = выключено)
+  --upstream-proxy  Восходящий прокси (socks5://user:pass@host:port)
 ```
 
 ### Примеры
 
+**Базовое (для новичков):**
 ```bash
-# Без аутентификации
-./TgWsProxy -v
+TgWsProxy.exe
+```
 
-# С аутентификацией (защита от несанкционированного доступа)
-./TgWsProxy --auth "myuser:mypassword"
+**С аутентификацией:**
+```bash
+TgWsProxy.exe --auth "myuser:mypassword"
+```
 
-# Настройка DC
-./TgWsProxy --dc-ip "2:149.154.167.220,4:149.154.167.220"
+**С HTTP прокси (для опытных):**
+```bash
+TgWsProxy.exe --http-port 8080
+```
+
+**С восходящим прокси (для опытных):**
+```bash
+TgWsProxy.exe --upstream-proxy "socks5://user:pass@proxy-server:1080"
 ```
 
 ## Структура проекта
