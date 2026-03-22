@@ -1,0 +1,225 @@
+// TG WS Proxy - CLI application
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"path/filepath"
+	"strings"
+	"syscall"
+
+	"github.com/Flowseal/tg-ws-proxy/internal/config"
+	"github.com/Flowseal/tg-ws-proxy/internal/proxy"
+	"github.com/Flowseal/tg-ws-proxy/internal/telegram"
+	"github.com/Flowseal/tg-ws-proxy/internal/version"
+)
+
+var appVersion = "2.0.0"
+
+func main() {
+	// Parse flags
+	port := flag.Int("port", 1080, "Listen port")
+	host := flag.String("host", "127.0.0.1", "Listen host")
+	dcIP := flag.String("dc-ip", "", "Target DC IPs (comma-separated, e.g., 2:149.154.167.220,4:149.154.167.220)")
+	verbose := flag.Bool("v", false, "Verbose logging")
+	logFile := flag.String("log-file", "", "Log file path (default: proxy.log in app dir)")
+	logMaxMB := flag.Float64("log-max-mb", 5, "Max log file size in MB")
+	bufKB := flag.Int("buf-kb", 256, "Socket buffer size in KB")
+	poolSize := flag.Int("pool-size", 4, "WS pool size per DC")
+	auth := flag.String("auth", "", "SOCKS5 authentication (username:password)")
+	autoConfig := flag.Bool("auto-config", false, "Auto-configure Telegram Desktop on startup")
+	showVersion := flag.Bool("version", false, "Show version")
+
+	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("TG WS Proxy v%s\n", appVersion)
+		os.Exit(0)
+	}
+
+	// Load config file
+	cfg, err := config.Load()
+	if err != nil {
+		log.Printf("Warning: failed to load config: %v, using defaults", err)
+		cfg = config.DefaultConfig()
+	}
+
+	// Override with CLI flags
+	if *port != 1080 {
+		cfg.Port = *port
+	}
+	if *host != "127.0.0.1" {
+		cfg.Host = *host
+	}
+	if *dcIP != "" {
+		cfg.DCIP = splitDCIP(*dcIP)
+	}
+	if *verbose {
+		cfg.Verbose = *verbose
+	}
+	if *logMaxMB != 5 {
+		cfg.LogMaxMB = *logMaxMB
+	}
+	if *bufKB != 256 {
+		cfg.BufKB = *bufKB
+	}
+	if *poolSize != 4 {
+		cfg.PoolSize = *poolSize
+	}
+	if *auth != "" {
+		cfg.Auth = *auth
+	}
+
+	// Setup logging - default to file if not specified
+	logPath := *logFile
+	if logPath == "" {
+		// Use default log file in app config directory
+		appDir := getAppDir()
+		logPath = filepath.Join(appDir, "proxy.log")
+	}
+	logger := setupLogging(logPath, cfg.LogMaxMB, cfg.Verbose)
+
+	// Create and start server
+	server, err := proxy.NewServer(cfg, logger)
+	if err != nil {
+		log.Fatalf("Failed to create server: %v", err)
+	}
+
+	// Auto-configure Telegram Desktop
+	if *autoConfig {
+		log.Println("Attempting to auto-configure Telegram Desktop...")
+		username, password := "", ""
+		if cfg.Auth != "" {
+			parts := strings.SplitN(cfg.Auth, ":", 2)
+			if len(parts) == 2 {
+				username, password = parts[0], parts[1]
+			}
+		}
+		if telegram.ConfigureProxy(cfg.Host, cfg.Port, username, password) {
+			log.Println("✓ Telegram Desktop proxy configuration opened")
+		} else {
+			log.Println("✗ Failed to open Telegram Desktop. Please configure manually.")
+			log.Println("  Open in browser: tg://socks?server=127.0.0.1&port=1080")
+		}
+	}
+
+	// Check for updates (non-blocking)
+	go func() {
+		hasUpdate, latest, url, err := version.CheckUpdate()
+		if err != nil {
+			return // Silent fail
+		}
+		if hasUpdate {
+			log.Printf("⚡ NEW VERSION AVAILABLE: v%s (current: v%s)", latest, version.CurrentVersion)
+			log.Printf("   Download: %s", url)
+		}
+	}()
+
+	// Handle shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigChan
+		log.Println("Shutting down...")
+		cancel()
+	}()
+
+	// Start server
+	if err := server.Start(ctx); err != nil {
+		log.Fatalf("Server error: %v", err)
+	}
+}
+
+func getAppDir() string {
+	// Get app directory based on OS
+	appData := os.Getenv("APPDATA")
+	if appData != "" {
+		// Windows
+		return filepath.Join(appData, "TgWsProxy")
+	}
+	// Linux/macOS
+	home, _ := os.UserHomeDir()
+	if home != "" {
+		return filepath.Join(home, ".TgWsProxy")
+	}
+	return "."
+}
+
+func setupLogging(logFile string, logMaxMB float64, verbose bool) *log.Logger {
+	flags := log.LstdFlags | log.Lshortfile
+	if verbose {
+		flags |= log.Lshortfile
+	}
+
+	// Ensure directory exists
+	dir := filepath.Dir(logFile)
+	os.MkdirAll(dir, 0755)
+
+	// Open log file with rotation
+	f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Printf("Warning: failed to open log file %s: %v, using stdout", logFile, err)
+		return log.New(os.Stdout, "", flags)
+	}
+
+	// Check file size and rotate if needed
+	info, _ := f.Stat()
+	maxBytes := int64(logMaxMB * 1024 * 1024)
+	if info.Size() > maxBytes {
+		f.Close()
+		os.Rename(logFile, logFile+".old")
+		f, _ = os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	}
+
+	log.SetOutput(f)
+	log.SetFlags(flags)
+	return log.New(f, "", flags)
+}
+
+func splitDCIP(s string) []string {
+	if s == "" {
+		return nil
+	}
+	result := []string{}
+	for _, part := range splitString(s, ",") {
+		part = trimSpace(part)
+		if part != "" {
+			result = append(result, part)
+		}
+	}
+	return result
+}
+
+func splitString(s, sep string) []string {
+	result := []string{}
+	start := 0
+	for i := 0; i <= len(s)-len(sep); i++ {
+		if s[i:i+len(sep)] == sep {
+			result = append(result, s[start:i])
+			start = i + len(sep)
+			i = start - 1
+		}
+	}
+	result = append(result, s[start:])
+	return result
+}
+
+func trimSpace(s string) string {
+	start := 0
+	end := len(s)
+	for start < end && (s[start] == ' ' || s[start] == '\t') {
+		start++
+	}
+	for end > start && (s[end-1] == ' ' || s[end-1] == '\t') {
+		end--
+	}
+	return s[start:end]
+}
