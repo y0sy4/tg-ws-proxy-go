@@ -12,24 +12,31 @@
 
 ---
 
-## 📥 Скачать последнюю версию
+## 📥 Скачать (Последняя версия v2.0.4)
 
-| Платформа | Файл | Размер | Ссылка |
-|-----------|------|--------|--------|
-| **Windows x64** | TgWsProxy.exe | 6.6 MB | [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_windows_amd64.exe) |
-| **Linux x64** | TgWsProxy | 6.5 MB | [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_linux_amd64) |
-| **macOS Intel** | TgWsProxy | 6.6 MB | [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_darwin_amd64) |
-| **macOS Apple Silicon** | TgWsProxy | 5.8 MB | [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_darwin_arm64) |
+> **💡 Просто выберите свою платформу и нажмите "Скачать"!**
 
-> **Все релизы:** https://github.com/y0sy4/tg-ws-proxy-go/releases
+| <img src="https://img.icons8.com/color/48/000000/windows-10.png" width="24"/> Windows | <img src="https://img.icons8.com/color/48/000000/linux.png" width="24"/> Linux | <img src="https://img.icons8.com/color/48/000000/mac-os.png" width="24"/> macOS |
+|----------|----------|----------|
+| **TgWsProxy.exe** | **TgWsProxy** | **TgWsProxy** |
+| 6.6 MB | 6.5 MB | 6.6 MB / 5.8 MB (ARM) |
+| [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_windows_amd64.exe) | [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_linux_amd64) | [⬇️ Intel](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_darwin_amd64) / [⬇️ Apple Silicon](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_darwin_arm64) |
+
+**📦 Все версии:** https://github.com/y0sy4/tg-ws-proxy-go/releases
 
 ---
 
-## 👶 Вы новичок? Начните здесь!
+## 🚀 Быстрый старт (3 простых шага)
 
-1. **[📥 Скачать программу](https://github.com/y0sy4/tg-ws-proxy-go/releases)** — выберите свою платформу
-2. **[❓ FAQ — Частые вопросы](FAQ.md)** — ответы на все вопросы
-3. **[🚀 Быстрый старт](#быстрый-старт)** — инструкция по запуску
+> **💡 Это так просто!**
+
+| Шаг | Что делать | Windows | Linux/macOS |
+|-----|------------|---------|-------------|
+| **1️⃣** | **Скачать** | Нажми "Скачать" выше | Нажми "Скачать" выше |
+| **2️⃣** | **Запустить** | Дважды кликни на `TgWsProxy.exe` | Открой терминал: `./TgWsProxy` |
+| **3️⃣** | **Готово!** | Telegram сам откроет настройки | Telegram сам откроет настройки |
+
+**✅ Всё!** Telegram теперь работает через прокси!
 
 ---
 
