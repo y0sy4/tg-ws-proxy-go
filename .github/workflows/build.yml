@@ -1,0 +1,51 @@
+name: Build Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest, macos-13]
+        include:
+          - os: windows-latest
+            artifact: TgWsProxy_windows_amd64.exe
+            goos: windows
+            goarch: amd64
+          - os: ubuntu-latest
+            artifact: TgWsProxy_linux_amd64
+            goos: linux
+            goarch: amd64
+          - os: macos-latest
+            artifact: TgWsProxy_darwin_arm64
+            goos: darwin
+            goarch: arm64
+          - os: macos-13
+            artifact: TgWsProxy_darwin_amd64
+            goos: darwin
+            goarch: amd64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build
+        run: |
+          go build -ldflags "-s -w" -o ${{ matrix.artifact }} ./cmd/proxy
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ matrix.artifact }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
