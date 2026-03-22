@@ -12,6 +12,19 @@
 
 ---
 
+## 📥 Скачать последнюю версию
+
+| Платформа | Файл | Размер | Ссылка |
+|-----------|------|--------|--------|
+| **Windows x64** | TgWsProxy.exe | 6.6 MB | [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_windows_amd64.exe) |
+| **Linux x64** | TgWsProxy | 6.5 MB | [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_linux_amd64) |
+| **macOS Intel** | TgWsProxy | 6.6 MB | [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_darwin_amd64) |
+| **macOS Apple Silicon** | TgWsProxy | 5.8 MB | [⬇️ Скачать](https://github.com/y0sy4/tg-ws-proxy-go/releases/download/v2.0.4/TgWsProxy_darwin_arm64) |
+
+> **Все релизы:** https://github.com/y0sy4/tg-ws-proxy-go/releases
+
+---
+
 ## 👶 Вы новичок? Начните здесь!
 
 1. **[📥 Скачать программу](https://github.com/y0sy4/tg-ws-proxy-go/releases)** — выберите свою платформу
