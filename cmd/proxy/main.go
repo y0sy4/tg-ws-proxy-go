@@ -31,7 +31,6 @@ func main() {
 	bufKB := flag.Int("buf-kb", 256, "Socket buffer size in KB")
 	poolSize := flag.Int("pool-size", 4, "WS pool size per DC")
 	auth := flag.String("auth", "", "SOCKS5 authentication (username:password)")
-	autoConfig := flag.Bool("auto-config", false, "Auto-configure Telegram Desktop on startup")
 	showVersion := flag.Bool("version", false, "Show version")
 
 	flag.Parse()
@@ -89,25 +88,24 @@ func main() {
 		log.Fatalf("Failed to create server: %v", err)
 	}
 
-	// Auto-configure Telegram Desktop
-	if *autoConfig {
-		log.Println("Attempting to auto-configure Telegram Desktop...")
-		username, password := "", ""
-		if cfg.Auth != "" {
-			parts := strings.SplitN(cfg.Auth, ":", 2)
-			if len(parts) == 2 {
-				username, password = parts[0], parts[1]
-			}
-		}
-		if telegram.ConfigureProxy(cfg.Host, cfg.Port, username, password) {
-			log.Println("✓ Telegram Desktop proxy configuration opened")
-		} else {
-			log.Println("✗ Failed to open Telegram Desktop. Please configure manually.")
-			log.Println("  Open in browser: tg://socks?server=127.0.0.1&port=1080")
+	// Auto-configure Telegram Desktop (always attempt on first run)
+	log.Println("Attempting to configure Telegram Desktop...")
+	username, password := "", ""
+	if cfg.Auth != "" {
+		parts := strings.SplitN(cfg.Auth, ":", 2)
+		if len(parts) == 2 {
+			username, password = parts[0], parts[1]
 		}
 	}
+	if telegram.ConfigureProxy(cfg.Host, cfg.Port, username, password) {
+		log.Println("✓ Telegram Desktop proxy configuration opened")
+	} else {
+		log.Println("✗ Failed to auto-configure Telegram.")
+		log.Println("  Manual setup: Settings → Advanced → Connection Type → Proxy")
+		log.Println("  Or open: tg://socks?server=127.0.0.1&port=1080")
+	}
 
-	// Check for updates (non-blocking)
+	// Check for updates and auto-download (non-blocking)
 	go func() {
 		hasUpdate, latest, url, err := version.CheckUpdate()
 		if err != nil {
@@ -115,7 +113,18 @@ func main() {
 		}
 		if hasUpdate {
 			log.Printf("⚡ NEW VERSION AVAILABLE: v%s (current: v%s)", latest, version.CurrentVersion)
-			log.Printf("   Download: %s", url)
+			log.Printf("   Downloading update...")
+			
+			// Try to download update
+			downloadedPath, err := version.DownloadUpdate(latest)
+			if err != nil {
+				log.Printf("   Download failed: %v", err)
+				log.Printf("   Manual download: %s", url)
+				return
+			}
+			
+			log.Printf("   ✓ Downloaded to: %s", downloadedPath)
+			log.Printf("   Restart the proxy to apply update")
 		}
 	}()
 

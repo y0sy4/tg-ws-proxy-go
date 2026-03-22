@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -16,10 +19,16 @@ const (
 )
 
 type Release struct {
-	TagName string `json:"tag_name"`
-	Name    string `json:"name"`
-	Body    string `json:"body"`
-	HTMLURL string `json:"html_url"`
+	TagName string  `json:"tag_name"`
+	Name    string  `json:"name"`
+	Body    string  `json:"body"`
+	HTMLURL string  `json:"html_url"`
+	Assets  []Asset `json:"assets"`
+}
+
+type Asset struct {
+	Name               string `json:"name"`
+	BrowserDownloadURL string `json:"browser_download_url"`
 }
 
 // CheckUpdate checks for new version on GitHub.
@@ -51,6 +60,85 @@ func CheckUpdate() (bool, string, string, error) {
 	}
 
 	return false, current, "", nil
+}
+
+// DownloadUpdate downloads the latest version for current platform.
+// Returns path to downloaded file or error.
+func DownloadUpdate(latestVersion string) (string, error) {
+	client := &http.Client{Timeout: 30 * time.Second}
+	
+	resp, err := client.Get(RepoURL)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var release Release
+	if err := json.Unmarshal(body, &release); err != nil {
+		return "", err
+	}
+
+	// Find asset for current platform
+	assetName := getAssetName()
+	for _, asset := range release.Assets {
+		if asset.Name == assetName {
+			return downloadAsset(client, asset.BrowserDownloadURL, assetName)
+		}
+	}
+
+	return "", fmt.Errorf("no asset found for %s", runtime.GOOS)
+}
+
+func getAssetName() string {
+	switch runtime.GOOS {
+	case "windows":
+		return "TgWsProxy_windows_amd64.exe"
+	case "linux":
+		return "TgWsProxy_linux_amd64"
+	case "darwin":
+		if runtime.GOARCH == "arm64" {
+			return "TgWsProxy_darwin_arm64"
+		}
+		return "TgWsProxy_darwin_amd64"
+	default:
+		return ""
+	}
+}
+
+func downloadAsset(client *http.Client, url, filename string) (string, error) {
+	resp, err := client.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Get executable directory
+	exe, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	exeDir := filepath.Dir(exe)
+	
+	// Download to temp file first
+	tempPath := filepath.Join(exeDir, filename+".new")
+	out, err := os.Create(tempPath)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		os.Remove(tempPath)
+		return "", err
+	}
+
+	return tempPath, nil
 }
 
 // compareVersions compares two semantic versions.

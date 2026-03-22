@@ -32,13 +32,10 @@ go build -o TgWsProxy.exe ./cmd/proxy
 ### Запуск
 
 ```bash
-# Windows
+# Windows (автоматически откроет настройку прокси в Telegram)
 start run.bat
 
-# Windows с авто-настройкой Telegram
-TgWsProxy.exe --auto-config
-
-# Linux/macOS
+# Linux/macOS (автоматически откроет настройку прокси в Telegram)
 ./TgWsProxy
 
 # С опциями
