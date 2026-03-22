@@ -72,6 +72,8 @@ func main() {
 	// Advanced features (for experienced users)
 	httpPort := flag.Int("http-port", 0, "Enable HTTP proxy on port (0 = disabled)")
 	upstreamProxy := flag.String("upstream-proxy", "", "Upstream SOCKS5/HTTP proxy (format: socks5://user:pass@host:port or http://user:pass@host:port)")
+	mtprotoSecret := flag.String("mtproto-secret", "", "MTProto proxy secret (enables MTProto mode)")
+	mtprotoPort := flag.Int("mtproto-port", 0, "MTProto proxy port (requires --mtproto-secret)")
 	
 	showVersion := flag.Bool("version", false, "Show version")
 
@@ -149,8 +151,28 @@ func main() {
 		log.Fatalf("Failed to create server: %v", err)
 	}
 
-	// Auto-configure Telegram Desktop (always attempt on first run)
+	// Auto-configure Telegram Desktop with correct proxy type
 	log.Println("Attempting to configure Telegram Desktop...")
+	
+	// Determine proxy type and configure Telegram accordingly
+	// Note: Our local proxy only supports SOCKS5
+	// HTTP port is for other applications (browsers, etc.)
+	// MTProto requires external MTProxy server
+	proxyType := "socks5"  // Always SOCKS5 for our local proxy
+	proxyPort := cfg.Port
+	proxySecret := ""
+	
+	// Log HTTP mode if enabled (for other apps, not Telegram)
+	if *httpPort != 0 {
+		log.Printf("⚙ HTTP proxy enabled on port %d (for browsers/other apps)", *httpPort)
+	}
+	
+	// Log MTProto mode info
+	if *mtprotoPort != 0 && *mtprotoSecret != "" {
+		log.Printf("⚙ MTProto mode: Use external MTProxy or configure manually")
+		log.Printf("  tg://proxy?server=%s&port=%d&secret=%s", cfg.Host, *mtprotoPort, *mtprotoSecret)
+	}
+	
 	username, password := "", ""
 	if cfg.Auth != "" {
 		parts := strings.SplitN(cfg.Auth, ":", 2)
@@ -158,12 +180,13 @@ func main() {
 			username, password = parts[0], parts[1]
 		}
 	}
-	if telegram.ConfigureProxy(cfg.Host, cfg.Port, username, password) {
-		log.Println("✓ Telegram Desktop proxy configuration opened")
+	
+	if telegram.ConfigureProxyWithType(cfg.Host, proxyPort, username, password, proxySecret, proxyType) {
+		log.Printf("✓ Telegram Desktop %s proxy configuration opened", strings.ToUpper(proxyType))
 	} else {
 		log.Println("✗ Failed to auto-configure Telegram.")
 		log.Println("  Manual setup: Settings → Advanced → Connection Type → Proxy")
-		log.Println("  Or open: tg://socks?server=127.0.0.1&port=1080")
+		log.Printf("  Or open: tg://socks?server=%s&port=%d", cfg.Host, proxyPort)
 	}
 
 	// Check for updates and auto-download (non-blocking)

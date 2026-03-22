@@ -8,12 +8,32 @@ import (
 	"strings"
 )
 
-// ConfigureProxy opens Telegram's proxy configuration URL.
+// ConfigureProxy opens Telegram's SOCKS5 proxy configuration URL.
 // Returns true if successful, false otherwise.
 func ConfigureProxy(host string, port int, username, password string) bool {
-	// Use tg://socks format (same as original Python version)
-	// Format: tg://socks?server=host&port=port
-	proxyURL := fmt.Sprintf("tg://socks?server=%s&port=%d", host, port)
+	return ConfigureProxyWithType(host, port, username, password, "", "socks5")
+}
+
+// ConfigureProxyWithType opens Telegram's proxy configuration URL with specified type.
+// proxyType: "socks5" or "mtproto"
+// For MTProto, provide secret parameter
+// Note: HTTP proxy is NOT supported by Telegram Desktop via tg:// URLs
+// Returns true if successful, false otherwise.
+func ConfigureProxyWithType(host string, port int, username, password, secret, proxyType string) bool {
+	var proxyURL string
+	
+	switch proxyType {
+	case "mtproto":
+		// MTProto proxy format: tg://proxy?server=host&port=port&secret=secret
+		if secret == "" {
+			secret = "ee000000000000000000000000000000" // default dummy secret
+		}
+		proxyURL = fmt.Sprintf("tg://proxy?server=%s&port=%d&secret=%s", host, port, secret)
+	default:
+		// SOCKS5 proxy format: tg://socks?server=host&port=port
+		// This is the only type our local proxy supports
+		proxyURL = fmt.Sprintf("tg://socks?server=%s&port=%d", host, port)
+	}
 	
 	// Open URL using system default handler
 	return openURL(proxyURL)

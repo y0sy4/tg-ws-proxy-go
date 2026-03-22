@@ -147,21 +147,26 @@ tg://socks?server=127.0.0.1&port=1080
 ```bash
 TgWsProxy.exe
 ```
+Просто запусти! Telegram автоматически откроет настройки SOCKS5 прокси.
 
 **С аутентификацией:**
 ```bash
 TgWsProxy.exe --auth "myuser:mypassword"
 ```
+Защита прокси паролем.
 
 **С HTTP прокси (для опытных):**
 ```bash
 TgWsProxy.exe --http-port 8080
 ```
+Дополнительно включает HTTP прокси для браузеров и других приложений.
+Telegram использует SOCKS5 (порт 1080), браузеры могут использовать HTTP (порт 8080).
 
 **С восходящим прокси (для опытных):**
 ```bash
 TgWsProxy.exe --upstream-proxy "socks5://user:pass@proxy-server:1080"
 ```
+Подключение к Telegram через другой SOCKS5 прокси.
 
 ## Структура проекта
 
