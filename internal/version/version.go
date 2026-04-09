@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	CurrentVersion = "2.0.6"
-	RepoURL        = "https://api.github.com/repos/y0sy4/tg-ws-proxy-go/releases/latest"
+	CurrentVersion = "2.0.7"
+	RepoURL        = "https://api.github.com/repos/y0sy4/telegram-proxy/releases/latest"
 )
 
 type Release struct {
