@@ -1,126 +1,137 @@
-# TG WS Proxy Go
+# Telegram Proxy
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/y0sy4/tg-ws-proxy-go?label=Go)](go.mod)
+[![Release](https://img.shields.io/github/v/release/y0sy4/telegram-proxy)](https://github.com/y0sy4/telegram-proxy/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/y0sy4/tg-ws-proxy-go)](https://github.com/y0sy4/tg-ws-proxy-go/releases)
+[![Go](https://img.shields.io/github/go-mod/go-version/y0sy4/telegram-proxy)](go.mod)
 
-> **Go rewrite** of [Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy)
+**Local SOCKS5 proxy for Telegram Desktop written in Go.** Speeds up Telegram by routing traffic through direct WebSocket connections to Telegram servers. Works as a local bypass for regions where Telegram is blocked or slow.
 
-**Local SOCKS5 proxy for Telegram Desktop written in Go**
+---
 
-Speeds up Telegram by routing traffic through direct WebSocket connections to Telegram servers.
+## 📥 Download (v2.0.7)
+
+### Full Version (~6.4 MB)
+
+| Platform | File |
+|----------|------|
+| **Windows** (amd64) | [⬇️ TgWsProxy_windows_amd64.exe](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_windows_amd64.exe) |
+| **Linux** (amd64) | [⬇️ TgWsProxy_linux_amd64](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_linux_amd64) |
+| **macOS** (Intel) | [⬇️ TgWsProxy_darwin_amd64](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_darwin_amd64) |
+| **macOS** (Apple Silicon) | [⬇️ TgWsProxy_darwin_arm64](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_darwin_arm64) |
+
+### Lite Version (~5 MB) — for routers and servers
+
+| Platform | File |
+|----------|------|
+| **Windows** (amd64) | [⬇️ TgWsProxy_lite_windows_amd64.exe](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_lite_windows_amd64.exe) |
+| **Linux** (amd64) | [⬇️ TgWsProxy_lite_linux_amd64](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_lite_linux_amd64) |
+| **Linux** (ARM64) | [⬇️ TgWsProxy_lite_linux_arm64](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_lite_linux_arm64) |
+| **macOS** (Intel) | [⬇️ TgWsProxy_lite_darwin_amd64](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_lite_darwin_amd64) |
+| **macOS** (Apple Silicon) | [⬇️ TgWsProxy_lite_darwin_arm64](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_lite_darwin_arm64) |
+
+### Which version to choose?
+
+| Version | Size | Features | For whom |
+|---------|------|---------|----------|
+| **Full** | ~6.4 MB | SOCKS5, HTTP proxy, upstream proxy, configs, auto-launch Telegram, `--test-dc`, `--test-dc-media` | Regular users |
+| **Lite** | ~5 MB | SOCKS5 proxy only, `--test-dc` | Routers (OpenWRT), servers, minimalists |
 
 ---
 
 ## 🚀 Quick Start
 
-### Installation
+### Windows
+1. Download [TgWsProxy_windows_amd64.exe](https://github.com/y0sy4/telegram-proxy/releases/download/v2.0.7/TgWsProxy_windows_amd64.exe)
+2. Double-click to run
+3. Telegram will open proxy settings → click "Enable"
 
+### Linux/macOS
 ```bash
-# Download binary from Releases
-# Or build from source
-go build -o TgWsProxy.exe ./cmd/proxy
+chmod +x TgWsProxy_linux_amd64
+./TgWsProxy_linux_amd64
 ```
 
-### Run
-
-```bash
-# Windows
-start run.bat
-
-# Linux/macOS
-./TgWsProxy
-
-# With options
-./TgWsProxy --port 9050 --dc-ip 2:149.154.167.220
-```
-
-### Configure Telegram Desktop
-
-1. **Settings** → **Advanced** → **Connection Type** → **Proxy**
-2. Add proxy:
-   - **Type:** SOCKS5
-   - **Server:** `127.0.0.1`
-   - **Port:** `1080`
-   - **Login/Password:** empty (or your credentials if using `--auth`)
-
-Or open link: `tg://socks?server=127.0.0.1&port=1080`
+**That's it!** Telegram works through the proxy.
 
 ---
 
-## 🔧 Command Line
+## ⚙️ Options
 
 ```bash
-./TgWsProxy [options]
-
-Options:
-  --port int        SOCKS5 port (default 1080)
-  --host string     SOCKS5 host (default "127.0.0.1")
-  --dc-ip string    DC:IP comma-separated (default "1:149.154.175.50,2:149.154.167.220,3:149.154.175.100,4:149.154.167.220,5:91.108.56.100")
-  --auth string     SOCKS5 authentication (username:password)
-  -v                Verbose logging
-  --log-file string Log file path
-  --log-max-mb float Max log size in MB (default 5)
-  --buf-kb int      Buffer size in KB (default 256)
-  --pool-size int   WS pool size (default 4)
-  --version         Show version
+TgWsProxy [flags]
 ```
+
+| Flag | Description | Default |
+|------|-----------|---------|
+| `--port` | SOCKS5 port | 1080 |
+| `--host` | Listen host | 127.0.0.1 |
+| `--dc-ip` | DC:IP (comma-separated), `DCm:IP` for media | auto |
+| `--auth` | Login:password for proxy | — |
+| `--http-port` | HTTP proxy (for browsers) | 0 (disabled) |
+| `--upstream-proxy` | Chain through another proxy | — |
+| `-v` | Verbose logging | false |
+| `--test-dc` | Test DC connectivity and exit | — |
+| `--test-dc-media` | Test DC + media/CDN | — |
+| `--auto-update` | Auto-update | false (security) |
 
 ### Examples
 
+**Just run:**
 ```bash
-# Without authentication
-./TgWsProxy -v
+TgWsProxy
+```
 
-# With authentication (protect from unauthorized access)
-./TgWsProxy --auth "myuser:mypassword"
+**HTTP proxy for browsers:**
+```bash
+TgWsProxy --http-port 8080
+```
 
-# Custom DC configuration
-./TgWsProxy --dc-ip "2:149.154.167.220,4:149.154.167.220"
+**Through Tor:**
+```bash
+TgWsProxy --upstream-proxy "socks5://127.0.0.1:9050"
+```
+
+**With password:**
+```bash
+TgWsProxy --auth "user:pass"
+```
+
+**Media-specific DC (different IPs for text and media):**
+```bash
+TgWsProxy --dc-ip "2:149.154.167.220,2m:149.154.167.222,4:149.154.167.91,4m:149.154.167.118"
+```
+
+**DC Diagnostics:**
+```bash
+# Test text DC
+TgWsProxy --test-dc
+
+# Test text + media DC
+TgWsProxy --test-dc-media
 ```
 
 ---
 
-## 📦 Supported Platforms
+## 🔧 What's new in v2.0.7
 
-| Platform | Architectures | Status |
-|----------|---------------|--------|
-| Windows | x86_64 | ✅ Ready |
-| Linux | x86_64 | ✅ Ready |
-| macOS | Intel + Apple Silicon | ✅ Ready |
-| Android | arm64, arm, x86_64 | 📝 See [android/README.md](android/README.md) |
-| iOS | arm64 | 🚧 Planned |
+| Category | Changes |
+|----------|---------|
+| 🌐 **Media CDN** | +13 CDN/media IPs, pluto/venus/kws-2 domains, media-specific `--dc-ip` |
+| 🔧 **Pool** | WS returned to pool, blacklist TTL 10 min, IsClosed() check |
+| ⚡ **Performance** | sync.Pool buffers (-80% GC), PatchInitDC in-place |
+| 💓 **Stability** | Heartbeat ping/pong, rate limiting, graceful shutdown |
+| 🧪 **Tests** | +16 unit tests (pool, config, websocket) |
+| 🐛 **Fixes** | Close frame panic fix, module path → `github.com/y0sy4/...` |
+| 📦 **Service** | systemd unit file `tg-ws-proxy.service` |
 
-**macOS Catalina (10.15)** — supported! Use `TgWsProxy_macos_amd64`.
-
----
-
-## ✨ Features
-
-- ✅ **WebSocket pooling** — connection pool for low latency
-- ✅ **TCP fallback** — automatic switch when WS unavailable
-- ✅ **MTProto parsing** — DC ID extraction from init packet
-- ✅ **SOCKS5** — full RFC 1928 support
-- ✅ **Logging** — with file rotation
-- ✅ **Zero-copy** — optimized memory operations
-- ✅ **IPv6 support** — via NAT64 and IPv4-mapped addresses
-- ✅ **Authentication** — SOCKS5 username/password
+[📋 All changes](https://github.com/y0sy4/telegram-proxy/compare/v2.0.6...v2.0.7)
 
 ---
 
-## 📊 Performance
+## 📊 Why Go?
 
-| Metric | Value |
-|--------|-------|
-| Binary size | ~6 MB |
-| Memory usage | ~10 MB |
-| Startup time | <100 ms |
-| Latency (pool hit) | <1 ms |
-
-### Comparison: Python vs Go
-
-| Metric | Python | Go |
-|--------|--------|-----|
+| | Python | Go |
+|--|--------|-----|
 | Size | ~50 MB | **~6 MB** |
 | Dependencies | pip | **stdlib** |
 | Startup | ~500 ms | **~50 ms** |
@@ -128,29 +139,25 @@ Options:
 
 ---
 
-## 📱 Mobile Support
+## 🗂️ Structure
 
-### Android
-
-See [android/README.md](android/README.md) for build instructions.
-
-Quick build (requires Android SDK):
-```bash
-make android
 ```
-
-### iOS
-
-Planned for future release.
-
----
-
-## 🔒 Security
-
-- No personal data in code
-- No passwords or tokens hardcoded
-- `.gitignore` properly configured
-- Security audit: see `SECURITY_AUDIT.md`
+telegram-proxy/
+├── cmd/proxy/          # Full CLI
+├── cmd/lite/           # Lite CLI (minimal)
+├── internal/
+│   ├── proxy/          # Proxy core
+│   ├── socks5/         # SOCKS5 server
+│   ├── websocket/      # WebSocket client
+│   ├── mtproto/        # MTProto parsing
+│   ├── pool/           # WebSocket pooling
+│   ├── config/         # Configuration
+│   └── telegram/       # Telegram auto-config
+├── mobile/             # Android/iOS bindings
+├── tg-ws-proxy.service # systemd unit
+├── go.mod
+└── Makefile
+```
 
 ---
 
@@ -160,73 +167,69 @@ Planned for future release.
 # All platforms
 make all
 
-# Specific platform
-make windows    # Windows (.exe)
-make linux      # Linux (amd64)
-make darwin     # macOS Intel + Apple Silicon
-make android    # Android (.aar library)
+# Or manually
+go build -o TgWsProxy.exe ./cmd/proxy                     # Windows
+GOOS=linux GOARCH=amd64 go build -o TgWsProxy_linux ./cmd/proxy
+GOOS=darwin GOARCH=amd64 go build -o TgWsProxy_macos ./cmd/proxy
+GOOS=darwin GOARCH=arm64 go build -o TgWsProxy_macos_arm64 ./cmd/proxy
 ```
 
 ---
 
-## 📋 Configuration
+## 📡 OpenWRT / Routers
 
-Config file location:
+### Quick start
 
-- **Windows:** `%APPDATA%/TgWsProxy/config.json`
-- **Linux:** `~/.config/TgWsProxy/config.json`
-- **macOS:** `~/Library/Application Support/TgWsProxy/config.json`
+```bash
+# Cross-compile (on PC)
+GOOS=linux GOARCH=arm64 go build -o tg-ws-proxy-go ./cmd/lite/
 
-```json
-{
-  "port": 1080,
-  "host": "127.0.0.1",
-  "dc_ip": [
-    "1:149.154.175.50",
-    "2:149.154.167.220",
-    "3:149.154.175.100",
-    "4:149.154.167.220",
-    "5:91.108.56.100"
-  ],
-  "verbose": false,
-  "log_max_mb": 5,
-  "buf_kb": 256,
-  "pool_size": 4,
-  "auth": ""
-}
+# Copy to router
+scp tg-ws-proxy-go root@192.168.1.1:/usr/bin/
+chmod +x /usr/bin/tg-ws-proxy-go
+
+# Run
+/usr/bin/tg-ws-proxy-go --host 0.0.0.0 --port 1080
+```
+
+### Media not loading?
+
+```bash
+# Test media DC
+/usr/bin/tg-ws-proxy-go --test-dc-media
+
+# Run with specific DC
+/usr/bin/tg-ws-proxy-go --dc-ip "2:149.154.167.220,4:149.154.167.220" --host 0.0.0.0 --port 1080
+```
+
+### systemd (Linux server)
+
+```bash
+sudo cp tg-ws-proxy.service /etc/systemd/system/
+sudo systemctl enable tg-ws-proxy
+sudo systemctl start tg-ws-proxy
 ```
 
 ---
 
-## 🐛 Known Issues
+## 🔍 Troubleshooting
 
-1. **IPv6** — supported via IPv4-mapped addresses (::ffff:x.x.x.x) and NAT64
-2. **DC3 WebSocket** — may be unavailable in some regions
-
----
-
-## 📈 Project Statistics
-
-| Metric | Value |
-|--------|-------|
-| Lines of Go code | ~2800 |
-| Files in repo | 19 |
-| Dependencies | 0 (stdlib only) |
-| Supported platforms | 4 |
+| Problem | Solution |
+|---------|----------|
+| Proxy not connecting | Check it's running, Telegram set to `127.0.0.1:1080` |
+| Text loads, media doesn't | Use `--test-dc-media`, then `--dc-ip` with working IPs |
+| Telegram won't open | Manually: `tg://socks?server=127.0.0.1&port=1080` |
+| Antivirus blocks it | False positive. Code is open source, add to exceptions |
+| Logs | `%APPDATA%\TgWsProxy\proxy.log` (Win), `~/.config/TgWsProxy/proxy.log` (Linux) |
 
 ---
 
-## 🎯 Fixed Issues from Original
+## 🤝 Contributing
 
-All reported issues from [Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy/issues) are resolved:
-
-- ✅ #386 — SOCKS5 authentication
-- ✅ #380 — Too many open files
-- ✅ #388 — Infinite connection
-- ✅ #378 — Media not loading
-- ✅ #373 — Auto DC detection
-
-See `ISSUES_ANALYSIS.md` for details.
+1. Fork → branch → PR
+2. `go test ./...`
+3. `gofmt -w .`
+4. No drama. Just facts.
 
 ---
 
@@ -236,12 +239,4 @@ MIT License
 
 ---
 
-## 🔗 Links
-
-- **Repository:** https://github.com/y0sy4/tg-ws-proxy-go
-- **Releases:** https://github.com/y0sy4/tg-ws-proxy-go/releases
-- **Original (Python):** https://github.com/Flowseal/tg-ws-proxy
-
----
-
-**Built with ❤️ using Go 1.21**
+**v2.0.7** | Built with ❤️ using Go 1.21

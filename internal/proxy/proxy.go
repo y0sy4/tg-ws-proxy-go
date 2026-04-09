@@ -17,11 +17,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/y0sy4/tg-ws-proxy-go/internal/config"
-	"github.com/y0sy4/tg-ws-proxy-go/internal/mtproto"
-	"github.com/y0sy4/tg-ws-proxy-go/internal/pool"
-	"github.com/y0sy4/tg-ws-proxy-go/internal/socks5"
-	"github.com/y0sy4/tg-ws-proxy-go/internal/websocket"
+	"github.com/y0sy4/telegram-proxy/internal/config"
+	"github.com/y0sy4/telegram-proxy/internal/mtproto"
+	"github.com/y0sy4/telegram-proxy/internal/pool"
+	"github.com/y0sy4/telegram-proxy/internal/socks5"
+	"github.com/y0sy4/telegram-proxy/internal/websocket"
 	"golang.org/x/net/proxy"
 )
 
@@ -467,7 +467,7 @@ func (s *Server) handleClient(conn net.Conn) {
 
 	if !dcInfo.Valid {
 		s.logWarning("[%s] ⚠️  unknown DC for %s:%d -> TCP fallback", label, req.DestAddr, req.DestPort)
-		s.logWarning("[%s] 💡 If media fails, this IP may be a CDN server. Try adding --dc-ip or report at github.com/y0sy4/tg-ws-proxy-go/issues", label)
+		s.logWarning("[%s] 💡 If media fails, this IP may be a CDN server. Try adding --dc-ip or report at github.com/y0sy4/telegram-proxy/issues", label)
 		s.handleTCPFallback(conn, req.DestAddr, req.DestPort, initData, label, dcInfo.DC, dcInfo.IsMedia)
 		return
 	}

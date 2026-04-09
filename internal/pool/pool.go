@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/y0sy4/tg-ws-proxy-go/internal/websocket"
+	"github.com/y0sy4/telegram-proxy/internal/websocket"
 )
 
 const (

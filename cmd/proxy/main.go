@@ -17,10 +17,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/y0sy4/tg-ws-proxy-go/internal/config"
-	"github.com/y0sy4/tg-ws-proxy-go/internal/proxy"
-	"github.com/y0sy4/tg-ws-proxy-go/internal/telegram"
-	"github.com/y0sy4/tg-ws-proxy-go/internal/version"
+	"github.com/y0sy4/telegram-proxy/internal/config"
+	"github.com/y0sy4/telegram-proxy/internal/proxy"
+	"github.com/y0sy4/telegram-proxy/internal/telegram"
+	"github.com/y0sy4/telegram-proxy/internal/version"
 )
 
 var appVersion = "2.0.6"

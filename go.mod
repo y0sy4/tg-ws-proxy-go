@@ -1,4 +1,4 @@
-module github.com/y0sy4/tg-ws-proxy-go
+module github.com/y0sy4/telegram-proxy
 
 go 1.25.0
 
